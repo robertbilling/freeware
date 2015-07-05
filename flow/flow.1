@@ -1,0 +1,84 @@
+.TH TSPLIT 1 "May 2009" "Flow 1.01"
+.SH NAME
+flow \- Monitor piped flow between commands
+.SH SYNOPSIS
+flow [\-l length] [\-f file] [\-m mountpoint] [\-u path] [\-c [\-h]] [\-b[width]]
+[\-n] [\-s] [\-e] [\-r] [\-t]
+.SH DESCRIPTION
+This program copies stdin to stdout, applying a variety of metering
+and monitoring tools. It is useful for example to monitor the progress
+of tar, cpio and similar tools.
+.P
+If flow knows the expected length of the stream, and it can use a
+variety of methods to find out, it can estimate time remaining and
+completeion time. Without knowing the length of the stream it can
+still display progress but cannot estimate completion time.
+.P
+Options are:
+.IP "-l num"
+Length is num bytes. 0xnnn hex format is acceptable.
+.IP "-f file"
+Use the length of file as the stream length
+.IP "-m mountpoint"
+Use the usage of the mounted file system as length
+.IP "-u path"
+Perform a du on path to estimate stream length
+.IP -c
+Display count of transferred byte and stream size
+.IP -h
+Make -c display in human readable form
+.IP -b[width]
+Display a bargraph [width] characters wide
+.IP -s
+Display seconds elapsed
+.IP -e
+Display ETA
+.IP -r
+Display seconds remaining
+.IP -n
+Print a newline after redrawing bargraph
+.IP -t
+Print totals on completion
+.SH USAGE
+Flow is intended to be inserted in a pipe in order to measure the
+quantity of data passing through it, and the rate of flow. It can
+estimate the time remaining and ETA, in the form of an estimated
+completion time.
+.P
+Flow can only indicate progress, and estimate completeion times, if it
+knows or can guess the length of the stream. It has five ways of doing
+this:
+.IP 1)
+By default it will attempt to seek to the end of the input. This will
+only work if the input is a file.
+.IP 2)
+The -l option can be used to supply the length of the stream as a
+decimal or hex integer. Hex integers must be prefixed with 0x.
+.IP 3)
+The -f option can be supplied to use the length of a file as the
+length of the stream.
+.IP 4)
+The -m option specifies a mountpoint. The total of all the files in
+the filesystem mounted on this mountpoint is the length. This is a
+fairly good approximation if tar (without compression) is then used to
+make a backup of the filesystem.
+.IP 5)
+Specifying a path with -u spawns du to determine the total size of
+files in the path and all its subdirectories. This is useful if tar is
+used to back up a directory which is not a whole filesystem, but if a
+whole filesystem is to be backed up -m is much faster.
+.P
+Typical use with tar:
+.P
+tar -cf - /library/holly/ | ./flow -b -e -t -c -h -u /library/holly/ |
+bzip2 -9 >/workspace/holly.tar.bz2
+.P
+This makes a backup of the directory /library/holly by first
+converting the directory to a tar archive. This then passes through
+flow to give a progress indication and finally is compressed by bzip2.
+.SH AUTHOR
+Robert Billing, Tanglewood Algorithms Ltd.
+.P
+freeware@tnglwood.demon.co.uk
+.SH SEE ALSO
+tar(1)
